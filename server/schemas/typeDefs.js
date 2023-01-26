@@ -20,7 +20,7 @@ const typeDefs = gql`
 
   type Auth {
     token: ID!
-    user: [User]
+    user: User
   }
 
   type Query {
@@ -33,7 +33,7 @@ const typeDefs = gql`
     login(email: String!, password: String!): Auth
     addUser(username: String!, email: String!, password: String!): Auth
     removeBook(bookId: ID!): User
-    saveBook(input: [Books]): User
+    saveBook(bookData: BookInput!): User
   }
 `;
 
