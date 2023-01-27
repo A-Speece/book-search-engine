@@ -30,7 +30,7 @@ const resolvers = {
         throw new AuthenticationError("No User with this email found!");
       }
 
-      const correctPw = await profile.isCorrectPassword(password);
+      const correctPw = await user.isCorrectPassword(password);
 
       if (!correctPw) {
         throw new AuthenticationError("Incorrect password!");
@@ -39,7 +39,7 @@ const resolvers = {
       const token = signToken(user);
       return { token, user };
     },
-    removeBook: async (parent, { savedBook }, context) => {
+    removeBook: async (parent, { bookId }, context) => {
       if (context.user) {
         return User.findOneAndUpdate(
           { _id: context.user._id },
