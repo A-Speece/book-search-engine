@@ -4,8 +4,16 @@ const { signToken } = require("../utils/auth");
 
 const resolvers = {
   Query: {
-    me: async (parent, { userId }) => {
-      return User.findOne({ _id: userId });
+    me: async (parent, args, context) => {
+      if (context.user) {
+        const userData = await User.findOne({ _id: context.user._id }).select(
+          "-__v -password"
+        );
+
+        return userData;
+      }
+
+      throw new AuthenticationError("Not logged in");
     },
   },
   Mutation: {
@@ -35,29 +43,23 @@ const resolvers = {
       if (context.user) {
         return User.findOneAndUpdate(
           { _id: context.user._id },
-          { $pull: { savedBooks: savedBook } },
+          { $pull: { savedBooks: { bookId } } },
           { new: true }
         );
       }
       throw new AuthenticationError("You need to be logged in!");
     },
-    savedBook: async (parent, { userId, bookId }, context) => {
-      // If context has a `user` property, that means the user executing this mutation has a valid JWT and is logged in
+    savedBook: async (parent, { bookData }, context) => {
       if (context.user) {
-        return User.findOneAndUpdate(
-          { _id: userId },
-          {
-            $addToSet: {
-              savedBooks: { bookId, title: context.title },
-            },
-          },
-          {
-            new: true,
-            runValidators: true,
-          }
+        const updatedUser = await User.findByIdAndUpdate(
+          { _id: context.user._id },
+          { $push: { savedBooks: bookData } },
+          { new: true }
         );
+
+        return updatedUser;
       }
-      // If user attempts to execute this mutation and isn't logged in, throw an error
+
       throw new AuthenticationError("You need to be logged in!");
     },
   },
